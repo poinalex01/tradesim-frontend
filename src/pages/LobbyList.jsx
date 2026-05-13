@@ -10,7 +10,7 @@ export default function LobbyList({ onJoinLobby, onProfile, onSeason }) {
     name: '',
     maxPlayers: 4,
     dataset: 'BTC_2021_Q1',
-    gameMode: 'NORMAL',
+    gameMode: 'SCALPING',
     maxLeverage: 10,
   })
 
@@ -122,18 +122,12 @@ export default function LobbyList({ onJoinLobby, onProfile, onSeason }) {
               </select>
 
               <select
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    gameMode: e.target.value,
-                  })
-                }
+                onChange={(e) => setForm({ ...form, gameMode: e.target.value })}
                 className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none"
               >
-                <option value="NORMAL">NORMAL</option>
                 <option value="SCALPING">Scalping</option>
-                <option value="DAY_TRADING">Daytrading</option>
-                <option value="SWING_TRADING">SwingTrading</option>
+                <option value="DAY_TRADING">Day Trading</option>
+                <option value="SWING_TRADING">Swing Trading</option>
               </select>
 
               <input

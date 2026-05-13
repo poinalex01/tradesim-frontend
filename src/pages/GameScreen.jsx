@@ -26,6 +26,10 @@ export default function GameScreen({ lobbyId, onExit }) {
   }
 
   useEffect(() => {
+    if (lobbyId) fetchPortfolio()
+  }, [tradeForm.usdAmount])
+
+  useEffect(() => {
     initAll()
     connectWebSocket()
     return () => {
@@ -113,7 +117,7 @@ export default function GameScreen({ lobbyId, onExit }) {
       low: c.low,
       close: c.close,
     }))
-        
+
     candleSeries.setData(candles)
     setTimeout(() => {
       chart.timeScale().fitContent()
@@ -381,19 +385,19 @@ export default function GameScreen({ lobbyId, onExit }) {
                 {tradeForm.type === 'LONG' ? 'Buy / Long' : 'Sell / Short'}
               </button>
 
-                              <div className="border-t border-gray-800 pt-3 mt-3 space-y-2">
-                  <p className="text-xs text-gray-500 mb-2">Coming Soon</p>
-                  {['Limit Order', 'Stop Loss', 'Take Profit', 'Advanced Charts', 'Replay'].map(feature => (
-                    <div
-                      key={feature}
-                      className="w-full py-2 px-3 rounded-lg text-sm text-gray-600 bg-gray-800/50 border border-gray-800 flex items-center justify-between cursor-not-allowed"
-                      onClick={() => setError(feature + ' — Coming Soon')}
-                    >
-                      <span>{feature}</span>
-                      <span className="text-xs bg-gray-700 px-2 py-0.5 rounded">Soon</span>
-                    </div>
-                  ))}
-                </div>
+              <div className="border-t border-gray-800 pt-3 mt-3 space-y-2">
+                <p className="text-xs text-gray-500 mb-2">Coming Soon</p>
+                {['Limit Order', 'Stop Loss', 'Take Profit', 'Advanced Charts', 'Replay'].map(feature => (
+                  <div
+                    key={feature}
+                    className="w-full py-2 px-3 rounded-lg text-sm text-gray-600 bg-gray-800/50 border border-gray-800 flex items-center justify-between cursor-not-allowed"
+                    onClick={() => setError(feature + ' — Coming Soon')}
+                  >
+                    <span>{feature}</span>
+                    <span className="text-xs bg-gray-700 px-2 py-0.5 rounded">Soon</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>

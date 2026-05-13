@@ -2,15 +2,15 @@ import { useEffect, useState } from 'react'
 import api from '../api/axios'
 
 export default function Season({ onBack }) {
-  const [activeTab, setActiveTab] = useState('NORMAL')
+  const [activeTab, setActiveTab] = useState('SCALPING')
   const [seasons, setSeasons] = useState({})
   const [loading, setLoading] = useState(true)
 
-  const gameModes = [
-    { key: 'NORMAL', label: 'Swing Trading' },
+const gameModes = [
     { key: 'SCALPING', label: 'Scalping' },
-    { key: 'VOLATILITY', label: 'Volatility' },
-  ]
+    { key: 'DAY_TRADING', label: 'Day Trading' },
+    { key: 'SWING_TRADING', label: 'Swing Trading' },
+]
 
   useEffect(() => {
     fetchAll()
