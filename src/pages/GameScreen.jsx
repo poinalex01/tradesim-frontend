@@ -151,13 +151,23 @@ export default function GameScreen({ lobbyId, onExit }) {
           setCurrentPrice(data.currentPrice)
 
           if (candleSeriesRef.current) {
-            candleSeriesRef.current.update({
-              time: data.tickIndex,
-              open: data.open,
-              high: data.high,
-              low: data.low,
-              close: data.close,
-            })
+              if (data.candleComplete) {
+                  candleSeriesRef.current.update({
+                      time: data.tickIndex + 1,
+                      open: data.open,
+                      high: data.high,
+                      low: data.low,
+                      close: data.close,
+                  })
+              } else {
+                  candleSeriesRef.current.update({
+                      time: data.tickIndex + 1,
+                      open: data.open,
+                      high: Math.max(data.open, data.currentPrice),
+                      low: Math.min(data.open, data.currentPrice),
+                      close: data.currentPrice,
+                  })
+              }
           }
 
           fetchPortfolio()
