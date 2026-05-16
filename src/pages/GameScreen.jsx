@@ -110,7 +110,7 @@ export default function GameScreen({ lobbyId, onExit }) {
     const res = await api.get(`/api/market/candles?dataset=${lobbyData.dataset}&asset=${asset}`)
     const tickIndex = lobbyData.currentTickIndex
 
-    const candles = res.data.slice(0, tickIndex + 1).map((c, index) => ({
+    const allCandles = res.data.slice(0, tickIndex + 1).map((c, index) => ({
       time: index + 1,
       open: c.open,
       high: c.high,
@@ -118,7 +118,23 @@ export default function GameScreen({ lobbyId, onExit }) {
       close: c.close,
     }))
 
-    candleSeries.setData(candles)
+    candleSeries.setData(allCandles)
+
+    const contextCandles = allCandles.filter(c => c.isContext).map(c => ({
+      time: c.time,
+      open: c.open,
+      high: c.high,
+      low: c.low,
+      close: c.close,
+      color: '#4b5563',
+      borderColor: '#6b7280',
+      wickColor: '#6b7280',
+    }))
+
+    const liveCandles = allCandles.filter(c => !c.isContext)
+
+    candleSeries.setData([...contextCandles, ...liveCandles])
+
     setTimeout(() => {
       chart.timeScale().fitContent()
       const half = 45
@@ -217,7 +233,7 @@ export default function GameScreen({ lobbyId, onExit }) {
         <div className="flex items-center gap-6">
           {currentPrice && (
             <div className="text-right">
-              <p className="text-xs text-gray-400">{getAsset(lobby?.dataset)}/USDT</p>
+              <p className="text-xs text-gray-400">{lobby?.asset}/USDT</p>
               <p className="text-lg font-bold text-white">${currentPrice.toLocaleString()}</p>
             </div>
           )}
@@ -247,7 +263,7 @@ export default function GameScreen({ lobbyId, onExit }) {
                     {pos.type}
                   </span>
                   <div>
-                    <p className="text-sm font-medium">{pos.asset} · {pos.quantity.toFixed(6)} · {pos.leverage}x</p>
+                    <p className="text-sm font-medium">{pos.asset} - {pos.quantity.toFixed(6)} - {pos.leverage}x</p>
                     <p className="text-xs text-gray-400">Entry: ${pos.entryPrice.toLocaleString()}</p>
                   </div>
                 </div>

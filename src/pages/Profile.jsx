@@ -73,7 +73,7 @@ export default function Profile({ onBack }) {
                   <div>
                     <p className="font-medium">{game.lobbyName || 'Unnamed Lobby'}</p>
                     <p className="text-xs text-gray-400">
-                      {game.dataset} · {game.gameMode} · {game.totalPlayers} players
+                      {game.dataset?.startsWith('ETH') ? 'ETH' : 'BTC'} · {game.gameMode} · {game.totalPlayers} players
                     </p>
                   </div>
                 </div>

@@ -9,15 +9,14 @@ export default function LobbyList({ onJoinLobby, onProfile, onSeason }) {
   const [form, setForm] = useState({
     name: '',
     maxPlayers: 4,
-    dataset: 'BTC_2021_Q1',
     gameMode: 'SCALPING',
     maxLeverage: 10,
   })
 
-  const fetchLobbies = async () => {
+const fetchLobbies = async () => {
     const res = await api.get('/api/lobbies')
-    setLobbies(res.data)
-  }
+    setLobbies(Array.isArray(res.data) ? res.data : [])
+}
 
   useEffect(() => {
     fetchLobbies()
@@ -111,17 +110,6 @@ export default function LobbyList({ onJoinLobby, onProfile, onSeason }) {
               />
 
               <select
-                onChange={(e) => setForm({ ...form, dataset: e.target.value })}
-                className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none"
-              >
-                <option value="BTC_2021_Q1">BTC 2021 Q1 — Bull Run</option>
-                <option value="BTC_2020_COVID">BTC 2020 — COVID Crash</option>
-                <option value="BTC_2022_BEAR">BTC 2022 — Bear Market</option>
-                <option value="BTC_2021_Q3">BTC 2021 Q3 — Summer Rally</option>
-                <option value="ETH_2021_Q2">ETH 2021 Q2 — Bull Run</option>
-              </select>
-
-              <select
                 onChange={(e) => setForm({ ...form, gameMode: e.target.value })}
                 className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none"
               >
@@ -194,8 +182,8 @@ export default function LobbyList({ onJoinLobby, onProfile, onSeason }) {
                 </div>
 
                 <p className="text-gray-400 text-sm mt-1">
-                  {lobby.dataset} · {lobby.gameMode} · $
-                  {lobby.startBalance.toLocaleString()} ·{' '}
+                  {lobby.asset || '?'} · {lobby.gameMode} · $
+                  {lobby.startBalance.toLocaleString()} · 
                   {lobby.currentPlayers}/{lobby.maxPlayers} players
                 </p>
               </div>
