@@ -184,7 +184,8 @@ export default function GameScreen({ lobbyId, onExit }) {
   const openPosition = async () => {
     try {
       setError('')
-      await api.post(`/api/trade/${lobbyId}/open`, tradeForm)
+      const qty = currentPrice ? tradeForm.usdAmount / currentPrice : 0
+      await api.post(`/api/trade/${lobbyId}/open`, { ...tradeForm, quantity: qty })
       fetchPortfolio()
     } catch (e) {
       setError(e.response?.data || 'Trade failed')
