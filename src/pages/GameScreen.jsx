@@ -9,6 +9,7 @@ export default function GameScreen({ lobbyId, onExit }) {
   const candleSeriesRef = useRef(null)
   const chartRef = useRef(null)
   const stompClientRef = useRef(null)
+  const tickCountRef = useRef(0)
 
   const [lobby, setLobby] = useState(null)
   const [portfolio, setPortfolio] = useState(null)
@@ -179,8 +180,11 @@ export default function GameScreen({ lobbyId, onExit }) {
               }
           }
 
-          fetchPortfolio()
-          fetchLeaderboard()
+          tickCountRef.current += 1
+          if (tickCountRef.current % 3 === 0) {
+              fetchPortfolio()
+              fetchLeaderboard()
+          }
           fetchLobby()
         })
       },

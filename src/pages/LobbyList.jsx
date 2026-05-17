@@ -182,7 +182,7 @@ const fetchLobbies = async () => {
                 </div>
 
                 <p className="text-gray-400 text-sm mt-1">
-                  {lobby.asset || '?'} · {lobby.gameMode} · $
+                  {lobby.status === 'WAITING' ? lobby.gameMode : lobby.asset} · {lobby.gameMode} · $
                   {lobby.startBalance.toLocaleString()} · 
                   {lobby.currentPlayers}/{lobby.maxPlayers} players
                 </p>
