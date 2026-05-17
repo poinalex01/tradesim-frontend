@@ -41,8 +41,17 @@ export default function GameScreen({ lobbyId, onExit }) {
     const lobbyRes = await api.get(`/api/lobbies/${lobbyId}`)
     setLobby(lobbyRes.data)
     if (lobbyRes.data.status === 'FINISHED') setFinished(true)
+
     const asset = getAsset(lobbyRes.data.dataset)
     setTradeForm(prev => ({ ...prev, asset }))
+
+    // fetch last price from the candles
+    const candleRes = await api.get(`/api/market/candles?dataset=${lobbyRes.data.dataset}&asset=${asset}`)
+    if (candleRes.data.length > 0) {
+      const lastCandle = candleRes.data[lobbyRes.data.currentTickIndex] || candleRes.data[candleRes.data.length - 1]
+      setCurrentPrice(lastCandle.close)
+    }
+
     fetchPortfolio()
     fetchLeaderboard()
     initChart(lobbyRes.data)
