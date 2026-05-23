@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { createChart, CandlestickSeries } from 'lightweight-charts'
+import { createChart, CandlestickSeries, HistogramSeries, LineSeries } from 'lightweight-charts'
 import SockJS from 'sockjs-client'
 import { Client } from '@stomp/stompjs'
 import api from '../api/axios'
@@ -10,6 +10,8 @@ export default function GameScreen({ lobbyId, onExit }) {
   const chartRef = useRef(null)
   const stompClientRef = useRef(null)
   const tickCountRef = useRef(0)
+  const volumeSeriesRef = useRef(null)
+  const maSeriesRef = useRef(null)
 
   const [lobby, setLobby] = useState(null)
   const [portfolio, setPortfolio] = useState(null)
@@ -32,7 +34,6 @@ export default function GameScreen({ lobbyId, onExit }) {
 
   useEffect(() => {
     initAll()
-    connectWebSocket()
     return () => {
       if (stompClientRef.current) stompClientRef.current.deactivate()
     }
@@ -46,7 +47,6 @@ export default function GameScreen({ lobbyId, onExit }) {
     const asset = getAsset(lobbyRes.data.dataset)
     setTradeForm(prev => ({ ...prev, asset }))
 
-    // fetch last price from the candles
     const candleRes = await api.get(`/api/market/candles?dataset=${lobbyRes.data.dataset}&asset=${asset}`)
     if (candleRes.data.length > 0) {
       const lastCandle = candleRes.data[lobbyRes.data.currentTickIndex] || candleRes.data[candleRes.data.length - 1]
@@ -56,6 +56,7 @@ export default function GameScreen({ lobbyId, onExit }) {
     fetchPortfolio()
     fetchLeaderboard()
     initChart(lobbyRes.data)
+    connectWebSocket()
   }
 
   const fetchLobby = async () => {
@@ -75,6 +76,8 @@ export default function GameScreen({ lobbyId, onExit }) {
   }
 
   const initChart = async (lobbyData) => {
+    if (!chartContainerRef.current) return
+
     if (chartContainerRef.current.children.length > 0) {
       chartContainerRef.current.innerHTML = ''
     }
@@ -116,6 +119,26 @@ export default function GameScreen({ lobbyId, onExit }) {
 
     candleSeriesRef.current = candleSeries
 
+    const volumeSeries = chart.addSeries(HistogramSeries, {
+      priceFormat: { type: 'volume' },
+      priceScaleId: 'volume',
+    })
+
+    chart.priceScale('volume').applyOptions({
+      scaleMargins: { top: 0.8, bottom: 0 },
+    })
+
+    volumeSeriesRef.current = volumeSeries
+
+    const maSeries = chart.addSeries(LineSeries, {
+      color: '#3b82f6',
+      lineWidth: 1,
+      priceLineVisible: false,
+      lastValueVisible: false,
+    })
+
+    maSeriesRef.current = maSeries
+
     const asset = getAsset(lobbyData.dataset)
     const res = await api.get(`/api/market/candles?dataset=${lobbyData.dataset}&asset=${asset}`)
     const tickIndex = lobbyData.currentTickIndex
@@ -129,6 +152,21 @@ export default function GameScreen({ lobbyId, onExit }) {
     }))
 
     candleSeries.setData(allCandles)
+
+    const volumeData = res.data.slice(0, tickIndex + 1).map((c, index) => ({
+      time: index + 1,
+      value: c.volume,
+      color: c.close >= c.open ? '#22c55e44' : '#ef444444',
+    }))
+    volumeSeries.setData(volumeData)
+
+    const maData = []
+    for (let i = 19; i < allCandles.length; i++) {
+      const slice = allCandles.slice(i - 19, i + 1)
+      const avg = slice.reduce((sum, c) => sum + c.close, 0) / 20
+      maData.push({ time: i + 1, value: avg })
+    }
+    maSeries.setData(maData)
 
     const contextCandles = allCandles.filter(c => c.isContext).map(c => ({
       time: c.time,
@@ -161,29 +199,38 @@ export default function GameScreen({ lobbyId, onExit }) {
           setCurrentPrice(data.currentPrice)
 
           if (candleSeriesRef.current) {
-              if (data.candleComplete) {
-                  candleSeriesRef.current.update({
-                      time: data.tickIndex + 1,
-                      open: data.open,
-                      high: data.high,
-                      low: data.low,
-                      close: data.close,
-                  })
-              } else {
-                  candleSeriesRef.current.update({
-                      time: data.tickIndex + 1,
-                      open: data.open,
-                      high: Math.max(data.open, data.currentPrice),
-                      low: Math.min(data.open, data.currentPrice),
-                      close: data.currentPrice,
-                  })
+            if (data.candleComplete) {
+              candleSeriesRef.current.update({
+                time: data.tickIndex + 1,
+                open: data.open,
+                high: data.high,
+                low: data.low,
+                close: data.close,
+              })
+              if (volumeSeriesRef.current) {
+                volumeSeriesRef.current.update({
+                  time: data.tickIndex + 1,
+                  value: 0,
+                  color: data.close >= data.open ? '#22c55e44' : '#ef444444',
+                })
               }
+            } else {
+              candleSeriesRef.current.update({
+                time: data.tickIndex + 1,
+                open: data.open,
+                high: Math.max(data.open, data.currentPrice),
+                low: Math.min(data.open, data.currentPrice),
+                close: data.currentPrice,
+              })
+            }
           }
+
+          console.log('ws tickIndex:', data.tickIndex, 'candleSeriesRef:', candleSeriesRef.current)
 
           tickCountRef.current += 1
           if (tickCountRef.current % 3 === 0) {
-              fetchPortfolio()
-              fetchLeaderboard()
+            fetchPortfolio()
+            fetchLeaderboard()
           }
           fetchLobby()
         })
